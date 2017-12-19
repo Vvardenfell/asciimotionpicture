@@ -106,6 +106,7 @@ int MonoLoop()
   cv::Mat detected_edges_image;
   cv::Mat gaussian_filtered;
   cv::Mat grad_x, grad_y;
+  cv::Mat direction, strength;
   int scale = 1;
   int delta = 0;
   int depth = CV_16S;
@@ -127,13 +128,13 @@ int MonoLoop()
 	cv::cvtColor(inputFrame, gray_scale_image, CV_BGR2GRAY);
 	//cv::blur(gray_scale_image, detected_edges_image, cv::Size(3,3));
 	cv::GaussianBlur(gray_scale_image, gaussian_filtered, cv::Size(5, 5), 0, 0);
-	cv::Sobel(gaussian_filtered, grad_x, depth, 1, 0, 3, scale, delta, 4);
-	cv::Sobel(gaussian_filtered, grad_y, depth, 0, 1, 3, scale, delta, 4);
+	cv::Sobel(gaussian_filtered, grad_x, depth, 1, 0, 7, scale, delta, 4);
+	cv::Sobel(gaussian_filtered, grad_y, depth, 0, 1, 7, scale, delta, 4);
 
-//	cv::Canny(detected_edges_image, detected_edges_image, 20, 20 * 3, 3);
-//	outputFrame = cv::Scalar::all(0);
-//	inputFrame.copyTo(outputFrame, detected_edges_image);
-	outputFrame = gaussian_filtered;
+	// Canny
+	direction = cv::Mat::zeros(cv::Size(grad_x.size), CV_32S);
+
+	outputFrame = grad_y;
     /***************************end todo*****************************/
     
     imshow("cam", outputFrame);

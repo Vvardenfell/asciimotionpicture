@@ -132,9 +132,35 @@ int MonoLoop()
 	cv::Sobel(gaussian_filtered, grad_y, depth, 0, 1, 7, scale, delta, 4);
 
 	// Canny
-	direction = cv::Mat::zeros(cv::Size(grad_x.size), CV_32S);
+	direction = cv::Mat(grad_x.rows, grad_x.cols, CV_16U);
+	strength = cv::Mat(grad_x.rows, grad_x.cols, CV_16U);
 
-	outputFrame = grad_y;
+	int nRows = grad_x.rows;
+	int nCols = grad_x.cols;
+
+	if (grad_x.isContinuous())
+	{
+		nCols *= nRows;
+		nRows = 1;
+	}
+
+	int i, j;
+	short *x, *y;
+	ushort *erg, *dir;
+	for (i = 0; i < nRows; ++i)
+	{
+		x = grad_x.ptr<short>(i);
+		y = grad_y.ptr<short>(i);
+		erg = strength.ptr<ushort>(i);
+		dir = direction.ptr<ushort>(i);
+		for (j = 0; j < nCols; ++j)
+		{
+			erg[j] = cv::sqrt(pow(x[j],2)+pow(y[j],2));
+			dir[j] = cvFastArctan(y[j], x[j]);
+		}
+	}
+
+	outputFrame = strength;
     /***************************end todo*****************************/
     
     imshow("cam", outputFrame);

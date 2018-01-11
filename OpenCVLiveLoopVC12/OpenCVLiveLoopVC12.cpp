@@ -128,7 +128,7 @@ int MonoLoop()
 	  else if (i < 174) p[i] = 45;
 	  else if (i < 206) p[i] = 90;
 	  else if (i < 238) p[i] = 135;
-	  else if (i < 245) p[i] = 180;//eigentlich 254 
+	  else if (i < 254) p[i] = 180;
 	  else p[i] = 0;
   }
 
@@ -145,6 +145,7 @@ int MonoLoop()
 
     /*******************************todo*****************************/
 
+	// canny preparation
 	outputFrame.create(inputFrame.size(), inputFrame.type());
 	cv::cvtColor(inputFrame, gray_scale_image, CV_BGR2GRAY);
 	//cv::blur(gray_scale_image, detected_edges_image, cv::Size(3,3));
@@ -156,15 +157,15 @@ int MonoLoop()
 	direction = cv::Mat(grad_x.rows, grad_x.cols, CV_8U);
 	strength = cv::Mat(grad_x.rows, grad_x.cols, CV_16U);
 
-	// iterarte through original image
 	int nRows = grad_x.rows;
 	int nCols = grad_x.cols;
-	// if image is stored in a continuous segment we can loose one loop
+	// if image is stored in a continuous segment we can loose one loop  => speed up
 	if (grad_x.isContinuous())
 	{
 		nCols *= nRows;
 		nRows = 1;
 	}
+	//calculate direction and strength of the edges
 	{
 		short *x, *y;
 		ushort *erg;
@@ -189,38 +190,40 @@ int MonoLoop()
 	// filter directions 
 	cv::LUT(direction, angleLUT, direction); //an continuous approach might give better results in rare cases
 	// generate mask
-	mask = cv::Mat(direction.rows/8, (direction.cols/8)*5, CV_8U);
-	cv::resize(direction, mask, cv::Size(direction.cols / 8, direction.rows/ 8), 0, 0, CV_INTER_AREA);
-	cv::resize(gaussian_filtered, grays, cv::Size(direction.cols / 8, direction.rows / 8), 0, 0, CV_INTER_AREA);
-	cv::LUT(mask, angleLUT, mask);
+	mask = cv::Mat(direction.rows/8, (direction.cols/8)*5, CV_8U, cv::Scalar(0));
+	//cv::resize(direction, mask, cv::Size(80, 60), 0, 0, CV_INTER_AREA);
+	//cv::resize(gaussian_filtered, grays, cv::Size(80,60), 0, 0, CV_INTER_AREA); 
+	//cv::LUT(mask, angleLUT, mask);
 	nRows = direction.rows;
 	nCols = direction.cols;
 	{
-		uchar *angle, *gray;
-		/*if (mask.isContinuous())
-		{
-			nCols *= nRows;
-			nRows = 1;
-		}*/
-		angle = direction.data;
+		uchar *dir, *erg;
+		int maskRow, maskCol;
 		for (int i = 0; i < nRows; i++)
 		{
-			//gray = grays.ptr<CV_8U>(i);
+			erg = mask.ptr<uchar>(i / 8);
+			dir = direction.ptr<uchar>(i);
 			for (int j = 0; j < nCols; j++)
 			{
-				//if (angle[j+i*nCols] == 0) cout << '0';
-				//else if (angle[j + i*nCols] == 45) cout << '\\';
-				//else if (angle[j+i*nCols] == 135) cout << '/';
-				//else if (angle[j+i*nCols] == 90) cout << '|';
-				//else if (angle[j+i*nCols] == 180) cout << '-';
-				//else cout << 'E';
+				maskCol = j / 8;
+				switch (dir[j])
+				{
+				case 45:
+					erg[maskCol]++;
+				case 90:
+					erg[maskCol+1]++;
+				case 135:
+					erg[maskCol+2]++;
+				case 180:
+					erg[maskCol+3]++;
+				default:
+					erg[maskCol+4]++;
+				}
 			}
-			cout <<endl;
 		}
 	}
 
 	outputFrame = direction;
-	//cv::resize(mask, outputFrame, cv::Size(640, 480), 0, 0);
     /***************************end todo*****************************/
     
     imshow("cam", outputFrame);
@@ -229,8 +232,8 @@ int MonoLoop()
       cout << "ESC key is pressed by user" << endl;
       break;
     }
-	char input;
-	cin >> input;
+	//char input;
+	//cin >> input;
   }
   return 0;
 }

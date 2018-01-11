@@ -5,11 +5,15 @@
 #include "MonoLoop.h"
 #include "StereoLoop.h"
 #include <iostream>
+#include <memory>
 using namespace std;
 
 const int MY_IMAGE_WIDTH  = 640;
 const int MY_IMAGE_HEIGHT = 480;
 const int MY_WAIT_IN_MS   = 20;
+
+
+const ushort CANNY_THRESHOLD = 16000;
 
 
 int MonoLoopOldStyle()
@@ -107,9 +111,26 @@ int MonoLoop()
   cv::Mat gaussian_filtered;
   cv::Mat grad_x, grad_y;
   cv::Mat direction, strength;
+  cv::Mat mask, grays;
   int scale = 1;
   int delta = 0;
   int depth = CV_16S;
+
+  cv::Mat angleLUT(1, 256, CV_8U);
+  uchar *p = angleLUT.data;
+  for (int i = 0; i < 256; i++)
+  {
+	  if (i < 16) p[i] = 180;
+	  else if (i < 48) p[i] = 45;
+	  else if (i < 79) p[i] = 90;
+	  else if (i < 111) p[i] = 135;
+	  else if (i <143) p[i] = 180;
+	  else if (i < 174) p[i] = 45;
+	  else if (i < 206) p[i] = 90;
+	  else if (i < 238) p[i] = 135;
+	  else if (i < 245) p[i] = 180;//eigentlich 254 
+	  else p[i] = 0;
+  }
 
   while(1)
   {
@@ -132,44 +153,84 @@ int MonoLoop()
 	cv::Sobel(gaussian_filtered, grad_y, depth, 0, 1, 7, scale, delta, 4);
 
 	// Canny
-	direction = cv::Mat(grad_x.rows, grad_x.cols, CV_16U);
+	direction = cv::Mat(grad_x.rows, grad_x.cols, CV_8U);
 	strength = cv::Mat(grad_x.rows, grad_x.cols, CV_16U);
 
+	// iterarte through original image
 	int nRows = grad_x.rows;
 	int nCols = grad_x.cols;
-
+	// if image is stored in a continuous segment we can loose one loop
 	if (grad_x.isContinuous())
 	{
 		nCols *= nRows;
 		nRows = 1;
 	}
-
-	int i, j;
-	short *x, *y;
-	ushort *erg, *dir;
-	for (i = 0; i < nRows; ++i)
 	{
-		x = grad_x.ptr<short>(i);
-		y = grad_y.ptr<short>(i);
-		erg = strength.ptr<ushort>(i);
-		dir = direction.ptr<ushort>(i);
-		for (j = 0; j < nCols; ++j)
+		short *x, *y;
+		ushort *erg;
+		uchar *dir;
+		for (int i = 0; i < nRows; ++i)
 		{
-			erg[j] = cv::sqrt(pow(x[j],2)+pow(y[j],2));
-			dir[j] = cvFastArctan(y[j], x[j]);
+			x = grad_x.ptr<short>(i);
+			y = grad_y.ptr<short>(i);					
+			erg = strength.ptr<ushort>(i);					// improve by getting rid of erg
+			dir = direction.ptr<uchar>(i);
+			for (int j = 0; j < nCols; ++j)
+			{
+				erg[j] = cv::sqrt(pow(x[j], 2) + pow(y[j], 2));
+				if (erg[j] > CANNY_THRESHOLD)
+				{
+					dir[j] = cv::fastAtan2(y[j], x[j]/1.42);
+				}
+				else dir[j] = 255;
+			}
+		}
+	}
+	// filter directions 
+	cv::LUT(direction, angleLUT, direction); //an continuous approach might give better results in rare cases
+	// generate mask
+	mask = cv::Mat(direction.rows/8, (direction.cols/8)*5, CV_8U);
+	cv::resize(direction, mask, cv::Size(direction.cols / 8, direction.rows/ 8), 0, 0, CV_INTER_AREA);
+	cv::resize(gaussian_filtered, grays, cv::Size(direction.cols / 8, direction.rows / 8), 0, 0, CV_INTER_AREA);
+	cv::LUT(mask, angleLUT, mask);
+	nRows = direction.rows;
+	nCols = direction.cols;
+	{
+		uchar *angle, *gray;
+		/*if (mask.isContinuous())
+		{
+			nCols *= nRows;
+			nRows = 1;
+		}*/
+		angle = direction.data;
+		for (int i = 0; i < nRows; i++)
+		{
+			//gray = grays.ptr<CV_8U>(i);
+			for (int j = 0; j < nCols; j++)
+			{
+				//if (angle[j+i*nCols] == 0) cout << '0';
+				//else if (angle[j + i*nCols] == 45) cout << '\\';
+				//else if (angle[j+i*nCols] == 135) cout << '/';
+				//else if (angle[j+i*nCols] == 90) cout << '|';
+				//else if (angle[j+i*nCols] == 180) cout << '-';
+				//else cout << 'E';
+			}
+			cout <<endl;
 		}
 	}
 
-	outputFrame = strength;
+	outputFrame = direction;
+	//cv::resize(mask, outputFrame, cv::Size(640, 480), 0, 0);
     /***************************end todo*****************************/
     
     imshow("cam", outputFrame);
-
     if(cv::waitKey(MY_WAIT_IN_MS) == 27)
     {
       cout << "ESC key is pressed by user" << endl;
       break;
     }
+	char input;
+	cin >> input;
   }
   return 0;
 }

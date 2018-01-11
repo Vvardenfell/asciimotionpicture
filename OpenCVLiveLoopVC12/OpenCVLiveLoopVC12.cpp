@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "MonoLoop.h"
 #include "StereoLoop.h"
+#include "output.h"
 #include <iostream>
 #include <memory>
 using namespace std;
@@ -11,6 +12,8 @@ using namespace std;
 const int MY_IMAGE_WIDTH  = 640;
 const int MY_IMAGE_HEIGHT = 480;
 const int MY_WAIT_IN_MS   = 20;
+
+const std::size_t BUFFER_WIDTH = 80, BUFFER_HEIGHT = 24;
 
 
 const ushort CANNY_THRESHOLD = 16000;
@@ -27,28 +30,28 @@ int MonoLoopOldStyle()
   // create connection to camera
   CvCapture* capture = cvCaptureFromCAM(0);
   // init camera
-  cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH ); 
+  cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH );
   cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT );
-  
+
   // check connection to camera by grabbing a frame
   if(!cvGrabFrame(capture))
-  {      
+  {
     cvReleaseCapture(&capture);
     cvDestroyWindow("Live");
     printf("Could not grab a frame\n\7");
     return -1;
   }
-  
+
   // retrieve the captured frame
-  grabImage=cvRetrieveFrame(capture);           
+  grabImage=cvRetrieveFrame(capture);
   // init result image, e.g. with size and depth of grabImage
   resultImage = cvCreateImage(cvGetSize(grabImage), grabImage->depth, grabImage->nChannels);
- 
+
   bool continueGrabbing = true;
   while (continueGrabbing)
   {
     if(!cvGrabFrame(capture))
-    {              
+    {
       cvReleaseCapture(&capture);
       cvDestroyWindow("Live");
       cvReleaseImage(&grabImage);
@@ -57,21 +60,21 @@ int MonoLoopOldStyle()
     }
     else
     {
-      grabImage = cvRetrieveFrame(capture);          
-    
+      grabImage = cvRetrieveFrame(capture);
+
       /*******************************todo*****************************/
         cvCopy(grabImage, resultImage, NULL );
       /***************************end todo*****************************/
-  
+
       cvShowImage("Live", resultImage);
 
       key = cvWaitKey(MY_WAIT_IN_MS);
 
       if (key == 27)
-        continueGrabbing = false;       
+        continueGrabbing = false;
     }
   }
- 
+
   // release all
   cvReleaseCapture(&capture);
   cvDestroyWindow("Live");
@@ -80,7 +83,7 @@ int MonoLoopOldStyle()
   return 0;
 }
 
-int MonoLoop()
+int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 {
   cv::VideoCapture cap(0);
 
@@ -89,7 +92,7 @@ int MonoLoop()
     cout << "Cannot open the video cam" << endl;
     return -1;
   }
-  
+
   // Set cameras to 15fps (if wanted!!!)
   cap.set(CV_CAP_PROP_FPS, 15);
 
@@ -100,9 +103,16 @@ int MonoLoop()
   cap.set(CV_CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH);
   cap.set(CV_CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT);
 
-  // display the frame size that OpenCV has picked in order to check 
+  // display the frame size that OpenCV has picked in order to check
   cout << "cam Frame size: " << dWidth << " x " << dHeight << endl;
   cv::namedWindow("cam",CV_WINDOW_AUTOSIZE);
+
+
+  FrameBuffer frame(BUFFER_WIDTH, BUFFER_HEIGHT);
+  Windows::frame = &frame;
+  Windows::init(hInstance, iCmdShow, "ASCII Motion Picture");
+
+
 
   cv::Mat inputFrame;
   cv::Mat outputFrame;
@@ -134,7 +144,7 @@ int MonoLoop()
 
   while(1)
   {
-   
+
     bool bSuccess = cap.read(inputFrame);
 
     if (!bSuccess)
@@ -173,7 +183,7 @@ int MonoLoop()
 		for (int i = 0; i < nRows; ++i)
 		{
 			x = grad_x.ptr<short>(i);
-			y = grad_y.ptr<short>(i);					
+			y = grad_y.ptr<short>(i);
 			erg = strength.ptr<ushort>(i);					// improve by getting rid of erg
 			dir = direction.ptr<uchar>(i);
 			for (int j = 0; j < nCols; ++j)
@@ -187,7 +197,7 @@ int MonoLoop()
 			}
 		}
 	}
-	// filter directions 
+	// filter directions
 	cv::LUT(direction, angleLUT, direction); //an continuous approach might give better results in rare cases
 	// generate mask
 	mask = cv::Mat(direction.rows/8, (direction.cols/8)*5, CV_8U, cv::Scalar(0));
@@ -219,13 +229,22 @@ int MonoLoop()
 				default:
 					erg[maskCol+4]++;
 				}
+
+				if (angle[j+i*nCols] == 0) frame.render('0', j, i);
+				else if (angle[j + i*nCols] == 45) frame.render('\\', j, i);
+				else if (angle[j+i*nCols] == 135) frame.render('/', j, i);
+				else if (angle[j+i*nCols] == 90) frame.render('|', j, i);
+				else if (angle[j+i*nCols] == 180) frame.render('-', j, i);
+				else frame.render('E', j, i);
 			}
 		}
+
+		Windows::redraw();
 	}
 
 	outputFrame = direction;
     /***************************end todo*****************************/
-    
+
     imshow("cam", outputFrame);
     if(cv::waitKey(MY_WAIT_IN_MS) == 27)
     {
@@ -254,7 +273,7 @@ int StereoLoop()
     cout << "Cannot open the video cam [1]" << endl;
     return -1;
   }
-  
+
   // Set cameras to 15fps (if wanted!!!)
   cap1.set(CV_CAP_PROP_FPS, 15);
   cap2.set(CV_CAP_PROP_FPS, 15);
@@ -270,7 +289,7 @@ int StereoLoop()
   cap2.set(CV_CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH);
   cap2.set(CV_CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT);
 
-  // display the frame size that OpenCV has picked in order to check 
+  // display the frame size that OpenCV has picked in order to check
   cout << "cam[0] Frame size: " << dWidth1 << " x " << dHeight1 << endl;
   cout << "cam[1] Frame size: " << dWidth2 << " x " << dHeight2 << endl;
   cv::namedWindow("cam[0]",CV_WINDOW_AUTOSIZE);
@@ -281,7 +300,7 @@ int StereoLoop()
 
   while(1)
   {
-   
+
     bool bSuccess1 = cap1.read(inputFrame1);
     bool bSuccess2 = cap2.read(inputFrame2);
 
@@ -296,7 +315,7 @@ int StereoLoop()
       cout << "Cannot read a frame from video stream [1]" << endl;
       break;
     }
-    
+
 
     /*******************************todo*****************************/
     outputFrame1 = inputFrame1;
@@ -318,6 +337,16 @@ int StereoLoop()
 
 
 
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
+
+    CMonoLoop myLoop;
+    //  CStereoLoop myLoop;
+    // myLoop.Run();
+
+    return MonoLoop(hInstance, iCmdShow);
+}
+
+/*
 int _tmain(int argc, _TCHAR* argv[])
 {
   CMonoLoop myLoop;
@@ -325,5 +354,5 @@ int _tmain(int argc, _TCHAR* argv[])
  // myLoop.Run();
 
   return MonoLoop();
-}
+}*/
 

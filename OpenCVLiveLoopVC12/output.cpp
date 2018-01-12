@@ -12,7 +12,7 @@ void Windows::init_font() {
 
     LOGFONT logical_font;
     memset(&logical_font, 0, sizeof(logical_font));
-    logical_font.lfHeight = 19;
+    logical_font.lfHeight = 12; //19
     logical_font.lfWeight = FW_NORMAL;
     logical_font.lfOutPrecision = OUT_TT_ONLY_PRECIS;
     const wchar_t* face_name = L"Unifont";
@@ -44,7 +44,6 @@ LRESULT CALLBACK window_event_handler(HWND hwnd, UINT message, WPARAM wParam, LP
 
     switch (message) {
     case WM_PAINT: {
-		std::cout << "painting" << std::endl;
         PAINTSTRUCT ps;
         RECT rc;
         HDC hdcMem;

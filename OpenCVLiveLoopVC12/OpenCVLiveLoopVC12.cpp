@@ -191,7 +191,7 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 				erg[j] = cv::sqrt(pow(x[j], 2) + pow(y[j], 2));
 				if (erg[j] > CANNY_THRESHOLD)
 				{
-					dir[j] = cv::fastAtan2(y[j], x[j]/1.42);
+					dir[j] = cv::fastAtan2(y[j], x[j])/1.42;
 				}
 				else dir[j] = 255;
 			}
@@ -230,19 +230,17 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 					erg[maskCol+4]++;
 				}
 	
-				if (dir[j] == 0) frame.render('0', j, i);
-				else if (dir[j] == 45) frame.render('\\', j, i);
-				else if (dir[j] == 135) frame.render('/', j, i);
-				else if (dir[j] == 90) frame.render('|', j, i);
-				else if (dir[j] == 180) frame.render('-', j, i);
+				if (dir[j] == 0) frame.render(U'\u9825', j, i);
+				else if (dir[j] == 45) frame.render('/', j, i);
+				else if (dir[j] == 135) frame.render('\\', j, i);
+				else if (dir[j] == 90) frame.render('-', j, i);
+				else if (dir[j] == 180) frame.render('|', j, i);
 				else frame.render('E', j, i);
 			}
 		}
 		frame.render(counter, 0, 0);
 		counter++;
 		Windows::redraw();
-		//std::string tmp = Unicode::to8(frame.get_glyph_frame().c_str());
-		//std::cout << tmp << std::endl;
 	}
 
 	outputFrame = direction;

@@ -57,7 +57,7 @@ class FrameBuffer;
 class Windows {
 private:
 
-    const static int WINDOW_WIDTH = 806, WINDOW_HEIGHT = 485;
+    const static int WINDOW_WIDTH = CW_USEDEFAULT, WINDOW_HEIGHT = CW_USEDEFAULT; // orig: 806, 485
 
     static HWND window_handle;
 

@@ -31,7 +31,7 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="output.h">
-      <Filter>Quelldateien</Filter>
+      <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

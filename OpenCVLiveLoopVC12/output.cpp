@@ -2,8 +2,8 @@
 #include "output.h"
 
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> Unicode::utf8wide;
-std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> Unicode::utf816;
-std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> Unicode::utf832;
+std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> Unicode::utf816;
+std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> Unicode::utf832;
 
 void Windows::init_font() {
     if (!AddFontResourceEx(L"unifont-7.0.06.ttf", FR_PRIVATE, 0)) {
@@ -44,7 +44,7 @@ LRESULT CALLBACK window_event_handler(HWND hwnd, UINT message, WPARAM wParam, LP
 
     switch (message) {
     case WM_PAINT: {
-
+		std::cout << "painting" << std::endl;
         PAINTSTRUCT ps;
         RECT rc;
         HDC hdcMem;
@@ -64,10 +64,10 @@ LRESULT CALLBACK window_event_handler(HWND hwnd, UINT message, WPARAM wParam, LP
         SetBkMode(hdcMem, TRANSPARENT);
         SetTextColor(hdcMem, RGB(0, 0, 0));
 
-        Windows::frame->clear();
+       
 
         std::wstring target = Unicode::widen(Unicode::to8(Windows::frame->get_glyph_frame()));
-
+		Windows::frame->clear();
         DrawTextW(hdcMem, target.c_str(), target.size(), &rc, DT_CENTER);
 
         BitBlt(ps.hdc, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, hdcMem, 0, 0, SRCCOPY);

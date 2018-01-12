@@ -13,7 +13,7 @@ const int MY_IMAGE_WIDTH  = 640;
 const int MY_IMAGE_HEIGHT = 480;
 const int MY_WAIT_IN_MS   = 20;
 
-const std::size_t BUFFER_WIDTH = 80, BUFFER_HEIGHT = 24;
+const std::size_t BUFFER_WIDTH = 640, BUFFER_HEIGHT = 480;
 
 
 const ushort CANNY_THRESHOLD = 16000;
@@ -141,7 +141,7 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 	  else if (i < 254) p[i] = 180;
 	  else p[i] = 0;
   }
-
+  char32_t counter = 50;
   while(1)
   {
 
@@ -229,7 +229,7 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 				default:
 					erg[maskCol+4]++;
 				}
-
+	
 				if (dir[j] == 0) frame.render('0', j, i);
 				else if (dir[j] == 45) frame.render('\\', j, i);
 				else if (dir[j] == 135) frame.render('/', j, i);
@@ -238,8 +238,11 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 				else frame.render('E', j, i);
 			}
 		}
-
+		frame.render(counter, 0, 0);
+		counter++;
 		Windows::redraw();
+		//std::string tmp = Unicode::to8(frame.get_glyph_frame().c_str());
+		//std::cout << tmp << std::endl;
 	}
 
 	outputFrame = direction;
@@ -257,83 +260,7 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
   return 0;
 }
 
-int StereoLoop()
-{
-  cv::VideoCapture cap1(0);
-  cv::VideoCapture cap2(1);
 
-  if(!cap1.isOpened())
-  {
-    cout << "Cannot open the video cam [0]" << endl;
-    return -1;
-  }
-
-  if(!cap2.isOpened())
-  {
-    cout << "Cannot open the video cam [1]" << endl;
-    return -1;
-  }
-
-  // Set cameras to 15fps (if wanted!!!)
-  cap1.set(CV_CAP_PROP_FPS, 15);
-  cap2.set(CV_CAP_PROP_FPS, 15);
-
-  double dWidth1 = cap1.get(CV_CAP_PROP_FRAME_WIDTH);
-  double dHeight1 = cap1.get(CV_CAP_PROP_FRAME_HEIGHT);
-  double dWidth2 = cap2.get(CV_CAP_PROP_FRAME_WIDTH);
-  double dHeight2 = cap2.get(CV_CAP_PROP_FRAME_HEIGHT);
-
-  // Set image size
-  cap1.set(CV_CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH);
-  cap1.set(CV_CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT);
-  cap2.set(CV_CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH);
-  cap2.set(CV_CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT);
-
-  // display the frame size that OpenCV has picked in order to check
-  cout << "cam[0] Frame size: " << dWidth1 << " x " << dHeight1 << endl;
-  cout << "cam[1] Frame size: " << dWidth2 << " x " << dHeight2 << endl;
-  cv::namedWindow("cam[0]",CV_WINDOW_AUTOSIZE);
-  cv::namedWindow("cam[1]",CV_WINDOW_AUTOSIZE);
-
-  cv::Mat inputFrame1, inputFrame2;
-  cv::Mat outputFrame1, outputFrame2;
-
-  while(1)
-  {
-
-    bool bSuccess1 = cap1.read(inputFrame1);
-    bool bSuccess2 = cap2.read(inputFrame2);
-
-    if (!bSuccess1)
-    {
-      cout << "Cannot read a frame from video stream [0]" << endl;
-      break;
-    }
-
-    if (!bSuccess2)
-    {
-      cout << "Cannot read a frame from video stream [1]" << endl;
-      break;
-    }
-
-
-    /*******************************todo*****************************/
-    outputFrame1 = inputFrame1;
-    outputFrame2 = inputFrame2;
-    /***************************end todo*****************************/
-
-
-    imshow("cam[0]", outputFrame1);
-    imshow("cam[1]", outputFrame2);
-
-    if(cv::waitKey(MY_WAIT_IN_MS) == 27)
-    {
-      cout << "ESC key is pressed by user" << endl;
-      break;
-    }
-  }
-  return 0;
-}
 
 
 /*
@@ -350,10 +277,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 int main(int argc, char* argv[]) {
 
 	CMonoLoop myLoop;
-	//  CStereoLoop myLoop;
 	// myLoop.Run();
 
-	return MonoLoop(NULL, 0);
+	return MonoLoop(NULL, SW_SHOW);
 }
 /*
 int _tmain(int argc, _TCHAR* argv[])

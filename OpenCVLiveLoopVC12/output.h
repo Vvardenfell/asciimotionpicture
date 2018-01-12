@@ -14,8 +14,8 @@ class Unicode {
 private:
 
     static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> utf8wide;
-    static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf816;
-    static std::wstring_convert<std::codecvt_utf8<unsigned int>, unsigned int> utf832;
+    static std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> utf816;
+    static std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> utf832;
 
 public:
 
@@ -28,11 +28,13 @@ public:
     }
 
     static std::u16string to16(const std::string& in) {
-        return Unicode::utf816.from_bytes(in);
+		auto p = Unicode::utf816.from_bytes(in);
+		return std::u16string(reinterpret_cast<const char16_t*> (p.data()));
     }
 
     static std::u32string to32(const std::string& in) {
-        return Unicode::utf832.from_bytes(in);
+		auto p = Unicode::utf832.from_bytes(in);
+		return std::u32string(reinterpret_cast<const char32_t*>(p.data()));
     }
 
     static inline std::string to8(const std::wstring& in) {
@@ -40,11 +42,13 @@ public:
     }
 
     static std::string to8(const std::u16string& in) {
-        return Unicode::utf816.to_bytes(in);
+		auto p = reinterpret_cast<const int16_t *>(in.data());
+        return Unicode::utf816.to_bytes(p, p+in.size());
     }
 
     static std::string to8(const std::u32string& in) {
-        return Unicode::utf832.to_bytes(in);
+		auto p = reinterpret_cast<const int32_t *>(in.data());
+        return Unicode::utf832.to_bytes(p, p+in.size());
     }
 };
 

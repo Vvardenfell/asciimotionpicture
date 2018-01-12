@@ -230,11 +230,11 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 					erg[maskCol+4]++;
 				}
 
-				if (angle[j+i*nCols] == 0) frame.render('0', j, i);
-				else if (angle[j + i*nCols] == 45) frame.render('\\', j, i);
-				else if (angle[j+i*nCols] == 135) frame.render('/', j, i);
-				else if (angle[j+i*nCols] == 90) frame.render('|', j, i);
-				else if (angle[j+i*nCols] == 180) frame.render('-', j, i);
+				if (dir[j] == 0) frame.render('0', j, i);
+				else if (dir[j] == 45) frame.render('\\', j, i);
+				else if (dir[j] == 135) frame.render('/', j, i);
+				else if (dir[j] == 90) frame.render('|', j, i);
+				else if (dir[j] == 180) frame.render('-', j, i);
 				else frame.render('E', j, i);
 			}
 		}

@@ -208,7 +208,7 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 	nCols = direction.cols;
 	{
 		uchar *dir, *erg;
-		int maskRow, maskCol;
+		int maskCol;
 		for (int i = 0; i < nRows; i++)
 		{
 			erg = mask.ptr<uchar>(i / 8);
@@ -336,7 +336,7 @@ int StereoLoop()
 }
 
 
-
+/*
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
 
     CMonoLoop myLoop;
@@ -345,7 +345,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
     return MonoLoop(hInstance, iCmdShow);
 }
+*/
 
+int main(int argc, char* argv[]) {
+
+	CMonoLoop myLoop;
+	//  CStereoLoop myLoop;
+	// myLoop.Run();
+
+	return MonoLoop(NULL, 0);
+}
 /*
 int _tmain(int argc, _TCHAR* argv[])
 {

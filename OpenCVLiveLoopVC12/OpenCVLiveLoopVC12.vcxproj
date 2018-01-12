@@ -153,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MonoLoop.h" />
+    <ClInclude Include="output.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StereoLoop.h" />
     <ClInclude Include="targetver.h" />
@@ -160,6 +161,7 @@
   <ItemGroup>
     <ClCompile Include="MonoLoop.cpp" />
     <ClCompile Include="OpenCVLiveLoopVC12.cpp" />
+    <ClCompile Include="output.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -1,10 +1,11 @@
+#include "stdafx.h"
 #include "output.h"
 
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> Unicode::utf8wide;
 std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> Unicode::utf816;
 std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> Unicode::utf832;
 
-static void Windows::init_font() {
+void Windows::init_font() {
     if (!AddFontResourceEx(L"unifont-7.0.06.ttf", FR_PRIVATE, 0)) {
         std::cerr << "failed to load true type font from file" << std::endl;
     }
@@ -23,7 +24,7 @@ static void Windows::init_font() {
     }
 }
 
-static void Windows::register_window_class(HINSTANCE hInstance, const std::wstring& application_name_wide, LRESULT CALLBACK (*window_event_handler)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)) {
+void Windows::register_window_class(HINSTANCE hInstance, const std::wstring& application_name_wide, LRESULT (*window_event_handler)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)) {
     WNDCLASS window_class{};
     window_class.style = CS_HREDRAW | CS_VREDRAW;
     window_class.lpfnWndProc = window_event_handler;
@@ -97,7 +98,7 @@ LRESULT CALLBACK window_event_handler(HWND hwnd, UINT message, WPARAM wParam, LP
     return 1;
 }
 
-static void Windows::init(HINSTANCE hInstance, int iCmdShow, const char* application_name) {
+void Windows::init(HINSTANCE hInstance, int iCmdShow, const char* application_name) {
 
     init_font();
 
@@ -112,6 +113,8 @@ static void Windows::init(HINSTANCE hInstance, int iCmdShow, const char* applica
 }
 
 HFONT Windows::font;
+HWND Windows::window_handle;
+FrameBuffer* Windows::frame;
 
 
 std::u32string FrameBuffer::get_glyph_frame() const {

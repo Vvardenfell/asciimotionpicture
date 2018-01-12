@@ -30,6 +30,9 @@
     <ClInclude Include="StereoLoop.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="output.h">
+      <Filter>Quelldateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -42,6 +45,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="StereoLoop.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="output.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

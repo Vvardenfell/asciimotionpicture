@@ -1,6 +1,3 @@
-#define _UNICODE
-#define UNICODE
-
 #include <windows.h>
 
 #include <codecvt>
@@ -18,7 +15,7 @@ private:
 
     static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> utf8wide;
     static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf816;
-    static std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> utf832;
+    static std::wstring_convert<std::codecvt_utf8<unsigned int>, unsigned int> utf832;
 
 public:
 
@@ -51,6 +48,7 @@ public:
     }
 };
 
+class FrameBuffer;
 
 class Windows {
 private:
@@ -61,7 +59,7 @@ private:
 
     static void init_font();
 
-    static void register_window_class(HINSTANCE hInstance, const std::wstring& application_name_wide, LRESULT CALLBACK (*window_event_handler)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam));
+    static void register_window_class(HINSTANCE hInstance, const std::wstring& application_name_wide, LRESULT (*window_event_handler)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam));
 
 public:
 

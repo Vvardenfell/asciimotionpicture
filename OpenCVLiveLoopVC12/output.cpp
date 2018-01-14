@@ -12,7 +12,7 @@ void Windows::init_font() {
 
     LOGFONT logical_font;
     memset(&logical_font, 0, sizeof(logical_font));
-    logical_font.lfHeight = 12; //19
+    logical_font.lfHeight = 10; //19
     logical_font.lfWeight = FW_NORMAL;
     logical_font.lfOutPrecision = OUT_TT_ONLY_PRECIS;
     const wchar_t* face_name = L"Unifont";

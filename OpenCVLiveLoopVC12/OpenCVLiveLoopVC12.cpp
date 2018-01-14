@@ -13,10 +13,10 @@ const int MY_IMAGE_WIDTH  = 640;
 const int MY_IMAGE_HEIGHT = 480;
 const int MY_WAIT_IN_MS   = 20;
 
-const std::size_t BUFFER_WIDTH = 640, BUFFER_HEIGHT = 480;
+const std::size_t BUFFER_WIDTH = 80, BUFFER_HEIGHT = 60;
 
 
-const ushort CANNY_THRESHOLD = 16000;
+const ushort CANNY_THRESHOLD = 19000; //16000
 
 
 int MonoLoopOldStyle()
@@ -114,7 +114,7 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 
 
 
-  cv::Mat inputFrame;
+  cv::Mat inputFrame, inFrame;
   cv::Mat outputFrame;
   cv::Mat gray_scale_image;
   cv::Mat detected_edges_image;
@@ -141,7 +141,6 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 	  else if (i < 254) p[i] = 180;
 	  else p[i] = 0;
   }
-  char32_t counter = 50;
   while(1)
   {
 
@@ -154,10 +153,10 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
     }
 
     /*******************************todo*****************************/
-
+	cv::resize(inputFrame, inFrame, cv::Size(80, 60), 0, 0, CV_INTER_AREA);
 	// canny preparation
-	outputFrame.create(inputFrame.size(), inputFrame.type());
-	cv::cvtColor(inputFrame, gray_scale_image, CV_BGR2GRAY);
+	outputFrame.create(inFrame.size(), inFrame.type());
+	cv::cvtColor(inFrame, gray_scale_image, CV_BGR2GRAY);
 	//cv::blur(gray_scale_image, detected_edges_image, cv::Size(3,3));
 	cv::GaussianBlur(gray_scale_image, gaussian_filtered, cv::Size(5, 5), 0, 0);
 	cv::Sobel(gaussian_filtered, grad_x, depth, 1, 0, 7, scale, delta, 4);
@@ -200,7 +199,7 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 	// filter directions
 	cv::LUT(direction, angleLUT, direction); //an continuous approach might give better results in rare cases
 	// generate mask
-	mask = cv::Mat(direction.rows/8, (direction.cols/8)*5, CV_8U, cv::Scalar(0));
+	//mask = cv::Mat(direction.rows/8, (direction.cols/8)*5, CV_8U, cv::Scalar(0));
 	//cv::resize(direction, mask, cv::Size(80, 60), 0, 0, CV_INTER_AREA);
 	//cv::resize(gaussian_filtered, grays, cv::Size(80,60), 0, 0, CV_INTER_AREA); 
 	//cv::LUT(mask, angleLUT, mask);
@@ -211,38 +210,51 @@ int MonoLoop(HINSTANCE hInstance, int iCmdShow)
 		int maskCol;
 		for (int i = 0; i < nRows; i++)
 		{
-			erg = mask.ptr<uchar>(i / 8);
+			//erg = mask.ptr<uchar>(i / 8);
 			dir = direction.ptr<uchar>(i);
 			for (int j = 0; j < nCols; j++)
 			{
 				maskCol = j / 8;
-				switch (dir[j])
-				{
-				case 45:
-					erg[maskCol]++;
-				case 90:
-					erg[maskCol+1]++;
-				case 135:
-					erg[maskCol+2]++;
-				case 180:
-					erg[maskCol+3]++;
-				default:
-					erg[maskCol+4]++;
-				}
-	
-				if (dir[j] == 0) frame.render(U'\u9825', j, i);
-				else if (dir[j] == 45) frame.render('/', j, i);
-				else if (dir[j] == 135) frame.render('\\', j, i);
-				else if (dir[j] == 90) frame.render('-', j, i);
-				else if (dir[j] == 180) frame.render('|', j, i);
-				else frame.render('E', j, i);
+				if (dir[j] == 0) 			frame.render(' ', j, i);	//erg[maskCol + 4]++;
+				else if (dir[j] == 45)		frame.render('/', j, i);	//erg[maskCol]++;
+				else if (dir[j] == 135)		frame.render('\\', j, i);	//erg[maskCol + 2]++;
+				else if (dir[j] == 90)		frame.render('-', j, i);	//erg[maskCol + 1]++;
+				else  /*(dir[j] == 180)*/	frame.render('|', j, i);	//erg[maskCol + 3]++;
 			}
 		}
-		frame.render(counter, 0, 0);
-		counter++;
-		Windows::redraw();
 	}
-
+	//{
+	//	// create smaller window
+	//	nRows = mask.rows;
+	//	nCols = mask.cols;
+	//	uchar *erg, *index;
+	//	int max;
+	//	for (int i = 0; i < nRows; i++)
+	//	{
+	//		erg = mask.ptr<uchar>(i);
+	//		for (int j = 0; j < nCols; j+=5)
+	//		{
+	//			max = 0;
+	//			for (int k = 1; k < 5; k++)
+	//			{
+	//				if (erg[j + k] > erg[j + max])
+	//					max = k;
+	//			}
+	//			int col = j / 5;
+	//			if (max == 0)//45°
+	//				frame.render('/', col, i);
+	//			else if (max == 1) // 90°
+	//				frame.render('-', col, i);
+	//			else if (max == 2) // 135°
+	//				frame.render('\\', col, i);
+	//			else if (max == 3) // 180°
+	//				frame.render('|', col, i);
+	//			else // render a null symbol
+	//				frame.render('0', col, i);
+	//		}
+	//	}
+	//}
+	Windows::redraw();
 	outputFrame = direction;
     /***************************end todo*****************************/
 
